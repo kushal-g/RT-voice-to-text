@@ -72,9 +72,9 @@ class App extends React.Component{
   render(){
     
     return (
-      //TODO: Extract recorder as a separate component
+      //TODO:Extract recorder as a separate component
       <div className="App">
-        <h1>Real Time Text-to-Speech</h1>
+        <h1>Real Time Speech-To-Text</h1>
         <div>
           <audio id="audio" autoPlay controls></audio>
           <a href='#' onClick={()=>{this.state.recording?this.stopRecording():this.startRecording()}}>
