@@ -3,72 +3,72 @@ import socketIOClient from "socket.io-client";
 import Recorder from 'recorder-js';
 import './App.css';
 
-class App extends React.Component{
+class STTRecorder{
   
   static socket;
   static recorder;
-  constructor(props){
-    super(props)
-    this.socket = socketIOClient('http://127.0.0.1:80')
-    this.state = {
-      recording:false,
-      notSupported:false,
-      transcript:''
-    }    
-  }
 
   startRecording = async () =>{
-    
+    this.socket = socketIOClient('http://127.0.0.1:80')
     const audioContext =  new (window.AudioContext || window.webkitAudioContext)();
     
     const mimeType = 'audio/wav';
 
     this.recorder = new Recorder(audioContext,{
-      'numChannels':1,
-      'mimeType':mimeType
+      'numChannels':2,
+      'mimeType':mimeType,
     })
-    let chunks = [];
+    
     try{
       let stream = await navigator.mediaDevices.getUserMedia({
         audio:{
-          channelCount:1
+          sampleRate:48000,
+          channelCount:2
         },
         video:false
       });
       
-      
       this.recorder.init(stream)
-      
-      await this.recorder.start();
-      this.setState({recording:true});  
-      /* recorder.addEventListener('dataavailable', event => {
-        if (typeof event.data === 'undefined') return;
-          if (event.data.size === 0) return;
-          console.log(event.data);
-          this.socket.emit('recording',event.data);
-        } 
-      ); */
-      
-    
-    
+      await this.recorder.start();   
     }catch(e){
-      this.setState({notSupported:true})
-    
+      console.log(e.message)
     }
     
   }
 
   stopRecording = async () =>{
-    
     const {blob, buffer} = await this.recorder.stop()
     console.log(blob)
     document.getElementById('audio').src = URL.createObjectURL(blob);
-    this.setState({recording:false});
     this.socket.emit('recording',blob,transcript=>{
-      this.setState({transcript:transcript})
+      console.log(transcript);
     });
   }
 
+}
+
+class Test extends React.Component{
+  
+
+  constructor(props){
+    super(props)
+    this.record = new STTRecorder()
+    this.state = {
+      recording:false
+    }
+  }
+
+
+  startRecording = () =>{
+    this.setState({recording:true})
+    this.record.startRecording()
+  }
+
+  stopRecording = () =>{
+    this.setState({recording:false})
+    this.record.stopRecording()
+  }
+  
   render(){
     
     return (
@@ -80,12 +80,13 @@ class App extends React.Component{
           <a href='#' onClick={()=>{this.state.recording?this.stopRecording():this.startRecording()}}>
             {this.state.recording?'Stop':'Record'}
           </a>
-          {this.state.transcript.length>0 && <p>{this.state.transcript}</p>}
+          {<p>{this.state.transcript}</p>}
           {this.state.notSupported && <p>Audio Streaming is not supported</p>}
         </div>
       </div>
     );
   }
+
 }
 
-export default App;
+export default Test;

@@ -36,6 +36,7 @@ io.on('connection',(socket)=>{
             encoding: 'LINEAR16',
             sampleRateHertz: 48000,
             languageCode: 'en-US',
+            audioChannelCount:2
           };
           
           const audio = {
@@ -56,6 +57,8 @@ io.on('connection',(socket)=>{
             .join('\n');
           console.log(`Transcription: ${transcription}`);
           fn(transcription)
+          socket.disconnect()
+          console.log(chalk.gray('Socket is disconnected'))
 
         }catch(e){
           console.log(chalk.red(e.message))
@@ -80,7 +83,7 @@ async function uploadRecordingToBucket(recordingBuffer,fileName){
     var bufferStream = new stream.PassThrough();
     bufferStream.end(recordingBuffer);
     file.save(recordingBuffer,options,err=>{
-      console.log('hey')
+
       if(err){
         reject(err);
       }
